@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tiled WMS</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.6.4/build/ol-debug.js"></script>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <script>
+      var layers = [
+        /*new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),*/
+        new ol.layer.Tile({
+          extent: [-124.73, 24.95, -66.97, 49.3],
+          source: new ol.source.TileWMS({
+            url: 'http://localhost:8080/geoserver/topp/wms',
+            params: {'LAYERS': 'states', 'TILED': true},
+            serverType: 'geoserver',
+            // Countries have transparency, so do not fade tiles:
+            transition: 0
+          })
+        })
+      ];
+      
+      var map = new ol.Map({
+        layers: layers,
+        target: 'map',
+        pixelRatio: 1,
+        view: new ol.View({
+          projection: 'EPSG:4326',
+          center: [-98.5795,39.8283],
+          zoom: 5
+        })
+      });
+    </script>
+  </body>
+</html>

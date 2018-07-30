@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <title>WFS-T OL Example</title><!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content=
+  "width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- OL stylesheet -->
+  <link rel="stylesheet" href="ol.css">
+</head>
+
+<body>
+  <div>
+    <div>
+      <div>
+        <h1>WFS-T OL Example</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div id="map"></div>
+
+      <div id="info-container">
+        <div class="row">
+          <div id="info"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+<!-- OpenLayers JS dependency, debug build -->
+<script type="text/javascript" src="ol-debug.js">
+</script>
+
+<!-- Begin wfst-ol Javascript -->
+<script type="text/javascript">
+    <!-- Constants and globals -->
+    var workspace = 'learning-geoserver';
+    var host = 'https://hello.world/geoserver';
+    var layer = 'pois';
+    var idField = 'id';
+    var changes = new Object();
+    var url = host + '/' + workspace + '/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=' + workspace + ':' + layer + '&outputFormat=application%2Fjson';
+
+    <!-- Normal OL Configuration with GeoJSON, OSM Tile -->
+    var vectorSource = new ol.source.Vector({
+        format: new ol.format.GeoJSON(),
+        url: url,
+        strategy: ol.loadingstrategy.bbox
+    });
+
+    var view = new ol.View({
+        center: [-77.163785, 39.7641],
+        zoom: 19,
+        projection: new ol.proj.Projection({
+            code: 'EPSG:4326',
+            units: 'degrees',
+            axisOrientation: 'neu',
+            global: true
+        })
+    })
+
+    var osm = new ol.layer.Tile({
+        source: new ol.source.OSM()
+    });
+
+    var pois = new ol.layer.Vector({
+        source: vectorSource
+    });
+
+    var map = new ol.Map({
+        target: "map",
+        layers: [osm, pois],
+        view: view
+    });
+
+    function changed(that) {
+    <!-- Handle changed input text, load changes object  -->
+        field = that.getAttribute('id');;
+        feature = that.getAttribute('data-feature');
+        change = {};
+
+        if (changes[feature] == undefined) {
+            changes[feature] = {};
+        }
+
+        changes[feature][field] = that.value;
+    }
+
+    map.on('singleclick', function(evt) {
+        <!-- Handle map click, create input elements -->
+        document.getElementById('info').innerHTML = "Loading... please wait...";
+
+        var view = map.getView();
+        var viewResolution = view.getResolution();
+        var source = vectorSource;
+        var response =
+            source.getClosestFeatureToCoordinate(evt.coordinate);
+        var values = response.getProperties();
+
+        txt = '';
+        for (x in values) {
+            if (x != idField) {
+                txt += '<label for="' + x + '">' + x + ':<\/label>\n' +
+                    '<input onchange="changed(this)"  data-feature="' + values[idField] + '" id="' + x + '" value="' + values[x] + '">';
+            }
+        }
+
+        txt += '<input type="button" value="Submit" onclick="submit()"/>';
+        document.getElementById('info').innerHTML = txt;
+
+    });
+
+    function submit() {
+        <!-- Handle input submission, generate and send WFS-T -->
+        if (Object.keys(changes).length > 0) {
+            var postData =
+                '<wfs:Transaction service="WFS" version="1.0.0"  xmlns:ogc="http://www.opengis.net/ogc" xmlns:wfs="http://www.opengis.net/wfs"><wfs:Update typeName="' + workspace + ':' + layer + '">\n';
+
+            for (x in changes) {
+
+                change = changes[x];
+                for (y in change) {
+
+                    postData += '<wfs:Property><wfs:Name>' + y + '<\/wfs:Name><wfs:Value>' + change[y] + '<\/wfs:Value><\/wfs:Property>';
+                }
+
+                postData += '<ogc:Filter><ogc:FeatureId fid="' + layer + '.' + x + '"/><\/ogc:Filter><\/wfs:Update>';
+            }
+
+            postData += '<\/wfs:Transaction>';
+
+            url = 'https://hello.world/geoserver/wfs';
+            var req = new XMLHttpRequest();
+            req.open("POST", url, true);
+            req.setRequestHeader('Content-type', 'text/xml');
+            req.onreadystatechange = function() {
+                if (req.readyState != 4) return;
+                if (req.status != 200 && req.status != 304) {
+                    alert('HTTP error ' + req.status);
+                    return;
+                }
+
+                alert(req.responseText);
+            }
+
+            if (req.readyState == 4) return;
+            req.send(postData);
+
+        }
+    }
+</script>
+</body>
+</html>

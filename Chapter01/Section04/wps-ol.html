@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>WPS OL Example</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content=
+  "width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- OL stylesheet -->
+  <link rel="stylesheet" href="https://openlayers.org/en/v4.4.2/css/ol.css" type="text/css"> 
+</head>
+
+<body>
+  <div>
+    <div>
+      <div>
+        <h1>WPS OL Example</h1>
+      </div>
+    </div>
+    <div>
+      <div id="map" style="width:640px;height:480px"></div>
+
+      <div>
+        <div>
+          <div><input type="button" value="Find Apple Optimal Planting Locations" onclick="submit();"/></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+<!-- OpenLayers JS dependency debug build and proj4js for projection -->
+<script type="text/javascript" src="https://openlayers.org/en/v4.4.2/build/ol-debug.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js"></script>
+
+
+<!-- Begin wps-ol Javascript -->
+<script type="text/javascript">
+    // Constants and globals
+    var host = 'http://localhost:8080/geoserver';
+    
+    proj4.defs('EPSG:2272', '+proj=lcc +lat_1=40.96666666666667 +lat_2=39.93333333333333 +lat_0=39.33333333333334 +lon_0=-77.75 +x_0=600000 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs');
+    var proj2272 = ol.proj.get('EPSG:2272');
+    proj2272.setExtent([1189270.2206, 149437.4511, 2820843.0100, 687058.9427]);
+      
+      
+    var view = new ol.View({
+        center: [-77.163785, 39.7641],
+        zoom: 19,
+        projection: new ol.proj.Projection({
+            code: 'EPSG:4326',
+            units: 'degrees',
+            axisOrientation: 'neu',
+            global: true
+        })
+    });
+
+    var osm = new ol.layer.Tile({
+        source: new ol.source.OSM()
+    });
+    
+    var wms = new ol.layer.Image({
+          //extent: [-13884991, 2870341, -7455066, 6338219],
+          source: new ol.source.ImageWMS({
+            url: host + '/wms',
+            params: {'LAYERS': 'learning-geoserver:pois'},
+            ratio: 1,
+            serverType: 'geoserver'
+          })
+    });
+
+    var map = new ol.Map({
+        target: "map",
+        layers: [osm, wms],
+        view: view
+    });
+    
+    
+    function submit() {
+      
+        
+    //Handle input submission, generate and send WPS
+            
+      postData =
+      `<?xml version="1.0" encoding="UTF-8"?>
+          <wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+            <ows:Identifier>JTS:difference</ows:Identifier>
+            <wps:DataInputs>
+              <wps:Input>
+                <ows:Identifier>a</ows:Identifier>
+                <wps:Reference mimeType="text/xml; subtype=gml/3.1.1" xlink:href="http://geoserver/wps" method="POST">
+                  <wps:Body>
+                    <wps:Execute version="1.0.0" service="WPS">
+                      <ows:Identifier>gs:CollectGeometries</ows:Identifier>
+                      <wps:DataInputs>
+                        <wps:Input>
+                          <ows:Identifier>features</ows:Identifier>
+                          <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+                            <wps:Body>
+                              <wps:Execute version="1.0.0" service="WPS">
+                              <ows:Identifier>gs:BufferFeatureCollection</ows:Identifier>
+                                <wps:DataInputs>
+                                  <wps:Input>
+                                    <ows:Identifier>features</ows:Identifier>
+                                    <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                                      <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0"
+            outputFormat="GML2"
+            xmlns:topp="http://www.openplans.org/topp"
+            xmlns:wfs="http://www.opengis.net/wfs"
+            xmlns:ogc="http://www.opengis.net/ogc"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.opengis.net/wfs
+                                http://schemas.opengis.net/wfs/1.0.0/WFS-basic.xsd">
+                                          <wfs:Query srsName="EPSG:2272" typeName="learning-geoserver:pois">
+                                            <ogc:Filter>
+                                               <ogc:PropertyIsEqualTo>
+                                                  <ogc:PropertyName>info_type</ogc:PropertyName>
+                                                  <ogc:Literal>Apple</ogc:Literal>
+                                               </ogc:PropertyIsEqualTo>
+                                            </ogc:Filter>
+                                            </wfs:Query>
+                                        </wfs:GetFeature>
+                                      </wps:Body>
+                                    </wps:Reference>
+                                  </wps:Input>
+                                  <wps:Input>
+                                    <ows:Identifier>distance</ows:Identifier>
+                                    <wps:Data>
+                                      <wps:LiteralData>100</wps:LiteralData>
+                                    </wps:Data>
+                                  </wps:Input>
+                                </wps:DataInputs>
+                                <wps:ResponseForm>
+                                  <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                                    <ows:Identifier>result</ows:Identifier>
+                                  </wps:RawDataOutput>
+                                </wps:ResponseForm>
+                              </wps:Execute>
+                            </wps:Body>
+                          </wps:Reference>
+                        </wps:Input>
+                      </wps:DataInputs>
+                      <wps:ResponseForm>
+                        <wps:RawDataOutput mimeType="text/xml; subtype=gml/3.1.1">
+                          <ows:Identifier>result</ows:Identifier>
+                        </wps:RawDataOutput>
+                      </wps:ResponseForm>
+                    </wps:Execute>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+              <wps:Input>
+                <ows:Identifier>b</ows:Identifier>
+                <wps:Reference mimeType="text/xml; subtype=gml/3.1.1" xlink:href="http://geoserver/wps" method="POST">
+                  <wps:Body>
+                    <wps:Execute version="1.0.0" service="WPS">
+                      <ows:Identifier>gs:CollectGeometries</ows:Identifier>
+                      <wps:DataInputs>
+                        <wps:Input>
+                          <ows:Identifier>features</ows:Identifier>
+                          <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wps" method="POST">
+                            <wps:Body>
+                              <wps:Execute version="1.0.0" service="WPS">
+                              <ows:Identifier>gs:BufferFeatureCollection</ows:Identifier>
+                                <wps:DataInputs>
+                                  <wps:Input>
+                                    <ows:Identifier>features</ows:Identifier>
+                                    <wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">
+                                      <wps:Body>
+                                        <wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" xmlns:learning-geoserver="http://packtpub.com/learning-geoserver">
+                                          <wfs:Query  srsName="EPSG:2272" typeName="learning-geoserver:pois"/>
+                                        </wfs:GetFeature>
+                                      </wps:Body>
+                                    </wps:Reference>
+                                  </wps:Input>
+                                  <wps:Input>
+                                    <ows:Identifier>distance</ows:Identifier>
+                                    <wps:Data>
+                                      <wps:LiteralData>50</wps:LiteralData>
+                                    </wps:Data>
+                                  </wps:Input>
+                                </wps:DataInputs>
+                                <wps:ResponseForm>
+                                  <wps:RawDataOutput mimeType="text/xml; subtype=wfs-collection/1.0">
+                                    <ows:Identifier>result</ows:Identifier>
+                                  </wps:RawDataOutput>
+                                </wps:ResponseForm>
+                              </wps:Execute>
+                            </wps:Body>
+                          </wps:Reference>
+                        </wps:Input>
+                      </wps:DataInputs>
+                      <wps:ResponseForm>
+                        <wps:RawDataOutput mimeType="text/xml; subtype=gml/3.1.1">
+                          <ows:Identifier>result</ows:Identifier>
+                        </wps:RawDataOutput>
+                      </wps:ResponseForm>
+                    </wps:Execute>
+                  </wps:Body>
+                </wps:Reference>
+              </wps:Input>
+            </wps:DataInputs>
+            <wps:ResponseForm>
+              <wps:RawDataOutput mimeType="application/json">
+                <ows:Identifier>result</ows:Identifier>
+              </wps:RawDataOutput>
+            </wps:ResponseForm>
+          </wps:Execute>`;
+
+             url = host + '/wps';
+            var req = new XMLHttpRequest();
+            req.open("POST", url, true);
+            req.setRequestHeader('Content-type', 'text/xml');
+            
+            req.onreadystatechange = function() {
+              if (req.readyState != 4) return;
+              if (req.status != 200 && req.status != 304) {
+                  alert('HTTP error ' + req.status);
+                  return;
+              }
+              
+              var format = new ol.format.GeoJSON();
+              response = req.response;
+              
+              var feature = (format.readFeatures(response, {
+                dataProjection: proj2272,
+                featureProjection: 'EPSG:4326'
+              }));
+              
+              var vectorSource = new ol.source.Vector({
+                features: feature
+              });
+          
+              var vectorLayer = new ol.layer.Vector({
+                source: vectorSource
+              });
+              
+             // console.log((new ol.format.GeoJSON()).writeFeatures(vectorLayer.getSource().getFeatures()));
+              
+              map.addLayer(vectorLayer);
+                
+              if (req.readyState == 4) return;
+            };
+            req.send(postData);
+        }
+  
+</script>
+</body>
+</html>
