@@ -1,6 +1,6 @@
 # Expert Geoserver
 
-<a href="https://www.packtpub.com/application-development/expert-geoserver?utm_source=GitHub&utm_medium=repository&utm_campaign=9781789538601"><img src="https://d255esdrn735hr.cloudfront.net/sites/default/files/imagecache/ppv4_main_book_cover/B11657_MockupCoverNew.png" alt="Introduction to Programming" height="256px" align="right"></a>
+<a href="https://www.packtpub.com/application-development/expert-geoserver?utm_source=GitHub&utm_medium=repository&utm_campaign=9781789538601"><img src="https://d1ldz4te4covpm.cloudfront.net/sites/default/files/imagecache/ppv4_main_book_cover/B11657.png" alt="Introduction to Programming" height="256px" align="right"></a>
 
 This is the code repository for [Expert Geoserver](https://www.packtpub.com/application-development/expert-geoserver?utm_source=GitHub&utm_medium=repository&utm_campaign=9781789538601), published by Packt.
 
