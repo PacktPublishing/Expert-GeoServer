@@ -23,7 +23,7 @@ alt="https://www.packtpub.com/" border="5" /></a>
 
 
 ## Instructions and Navigations
-All of the code is organized into folders. For example, Chapter02. Chapter 01 and 03 doesnot have code files. Also there is a image placed in the folder which represents the chapter structure.
+All of the code is organized into folders. For example, Chapter02. Chapter 5 does not have code files. Also there is a image placed in the folder which represents the chapter structure.
 
 The code will look like the following:
 ```
