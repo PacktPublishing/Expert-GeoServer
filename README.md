@@ -1,7 +1,3 @@
-## [Get this title for $10 on Packt's Spring Sale](https://www.packt.com/B11657?utm_source=github&utm_medium=packt-github-repo&utm_campaign=spring_10_dollar_2022)
------
-For a limited period, all eBooks and Videos are only $10. All the practical content you need \- by developers, for developers
-
 # Expert Geoserver
 
 <a href="https://www.packtpub.com/application-development/expert-geoserver?utm_source=GitHub&utm_medium=repository&utm_campaign=9781789538601"><img src="https://d1ldz4te4covpm.cloudfront.net/sites/default/files/imagecache/ppv4_main_book_cover/B11657.png" alt="Introduction to Programming" height="256px" align="right"></a>
